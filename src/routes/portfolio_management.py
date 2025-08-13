@@ -818,3 +818,57 @@ def bulk_update_categories():
         print(f"Bulk update error: {e}")
         return jsonify({'success': False, 'message': 'Server error occurred'})
 
+
+# API Routes for Frontend
+@portfolio_mgmt_bp.route('/api/portfolio', methods=['GET'])
+def get_portfolio():
+    """API endpoint to get portfolio images for frontend"""
+    try:
+        # Load portfolio data from JSON file
+        portfolio_data = load_portfolio_data()
+        
+        # Get category filter from query parameters
+        category_filter = request.args.get('category', 'All')
+        
+        # Filter by category if specified
+        if category_filter and category_filter != 'All':
+            filtered_data = []
+            for item in portfolio_data:
+                item_categories = item.get('categories', [item.get('category', '')])
+                if isinstance(item_categories, str):
+                    item_categories = [item_categories]
+                
+                if category_filter in item_categories:
+                    filtered_data.append(item)
+            portfolio_data = filtered_data
+        
+        # Return JSON response
+        return jsonify(portfolio_data)
+        
+    except Exception as e:
+        print(f"Portfolio API error: {e}")
+        return jsonify([])  # Return empty array on error
+
+@portfolio_mgmt_bp.route('/api/categories', methods=['GET'])
+def get_categories():
+    """API endpoint to get available categories for frontend"""
+    try:
+        # Load categories configuration
+        config = load_categories_config()
+        
+        # Return categories with default category info
+        return jsonify({
+            'categories': config.get('categories', []),
+            'default_category': config.get('default_category', 'All'),
+            'category_order': config.get('category_order', config.get('categories', []))
+        })
+        
+    except Exception as e:
+        print(f"Categories API error: {e}")
+        # Return default categories on error
+        return jsonify({
+            'categories': ['Wildlife', 'Landscapes', 'Portraits', 'Events', 'Nature', 'Miscellaneous'],
+            'default_category': 'All',
+            'category_order': ['Wildlife', 'Landscapes', 'Portraits', 'Events', 'Nature', 'Miscellaneous']
+        })
+
