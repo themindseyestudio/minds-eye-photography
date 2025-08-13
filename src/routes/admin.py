@@ -2,7 +2,7 @@ import os
 import json
 import uuid
 from datetime import datetime
-from flask import Blueprint, request, render_template_string, redirect, url_for, session
+from flask import Blueprint, request, render_template_string, redirect, url_for, session, jsonify
 from werkzeug.utils import secure_filename
 
 admin_bp = Blueprint('admin', __name__)
@@ -75,12 +75,13 @@ def admin_login_post():
     username = request.form.get('username')
     password = request.form.get('password')
     
-    # Simple authentication (in production, use proper password hashing)
-    if username == 'admin' and password == 'mindseye2024':
+    # Updated authentication credentials
+    if username == 'mindseye' and password == 'mindseye2025':
         session['admin_logged_in'] = True
         return redirect(url_for('admin.admin_dashboard'))
     else:
         return render_template_string(login_html, error="Invalid credentials")
+
 
 @admin_bp.route('/admin/dashboard')
 def admin_dashboard():
@@ -206,7 +207,7 @@ def admin_upload():
 
 @admin_bp.route('/admin/delete', methods=['POST'])
 def admin_delete():
-    """Delete image"""
+    """Delete single image (legacy support)"""
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin.admin_login'))
     
@@ -234,11 +235,60 @@ def admin_delete():
         print(f"Delete error: {e}")
         return redirect(url_for('admin.admin_dashboard') + '?message=Delete failed&message_type=error')
 
+@admin_bp.route('/admin/bulk-delete', methods=['POST'])
+def admin_bulk_delete():
+    """AJAX bulk delete for multiple images"""
+    if not session.get('admin_logged_in'):
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    try:
+        # Get selected image IDs from JSON request
+        data = request.get_json()
+        if not data or 'image_ids' not in data:
+            return jsonify({'success': False, 'message': 'No image IDs provided'})
+        
+        image_ids = data['image_ids']
+        if not image_ids:
+            return jsonify({'success': False, 'message': 'No images selected'})
+        
+        portfolio_data = load_portfolio_data()
+        deleted_count = 0
+        
+        # Delete images in reverse order to maintain indices
+        for i in range(len(portfolio_data) - 1, -1, -1):
+            item = portfolio_data[i]
+            if item.get('id') in image_ids:
+                # Delete the physical file from persistent storage
+                image_path = os.path.join(PHOTOGRAPHY_ASSETS_DIR, item.get('image', ''))
+                if os.path.exists(image_path):
+                    try:
+                        os.remove(image_path)
+                    except Exception as e:
+                        print(f"Error deleting file {image_path}: {e}")
+                
+                # Remove from portfolio data
+                portfolio_data.pop(i)
+                deleted_count += 1
+        
+        # Save updated data
+        if save_portfolio_data(portfolio_data):
+            return jsonify({
+                'success': True, 
+                'message': f'Successfully deleted {deleted_count} image(s)',
+                'deleted_count': deleted_count
+            })
+        else:
+            return jsonify({'success': False, 'message': 'Failed to save changes'})
+            
+    except Exception as e:
+        print(f"Bulk delete error: {e}")
+        return jsonify({'success': False, 'message': f'Server error: {str(e)}'})
+
 @admin_bp.route('/admin/logout')
 def admin_logout():
-    """Admin logout"""
+    """Admin logout - redirect to homepage instead of login"""
     session.pop('admin_logged_in', None)
-    return redirect(url_for('admin.admin_login'))
+    return redirect('/')  # Redirect to homepage instead of login page
 
 # HTML Templates
 login_html = '''
@@ -307,11 +357,27 @@ login_html = '''
             text-align: center; 
             margin-top: 10px; 
         }
+        .credentials-info {
+            background: #1a4d1a;
+            color: #90ee90;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="login-container">
         <h1>Mind's Eye Photography Admin</h1>
+        <div class="credentials-info">
+            <strong>Updated Login Credentials:</strong>  
+
+            Username: mindseye  
+
+            Password: mindseye2025
+        </div>
         <form method="POST" action="/admin/login">
             <div class="form-group">
                 <label for="username">Username:</label>
@@ -330,8 +396,7 @@ login_html = '''
 </body>
 </html>
 '''
-
-# Dashboard HTML template with dynamic categories and multi-image upload
+# Enhanced Dashboard HTML template with bulk delete functionality
 dashboard_html = '''
 <!DOCTYPE html>
 <html>
@@ -367,6 +432,50 @@ dashboard_html = '''
         .logout-btn:hover { 
             background: #555; 
         }
+        
+        /* Navigation Menu */
+        .admin-nav {
+            background: #333;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .admin-nav h2 {
+            color: #ff6b35;
+            margin: 0 0 15px 0;
+            font-size: 20px;
+        }
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .nav-item {
+            background: #444;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            transition: background 0.3s;
+        }
+        .nav-item:hover {
+            background: #555;
+        }
+        .nav-item a {
+            color: #fff;
+            text-decoration: none;
+            display: block;
+        }
+        .nav-item h3 {
+            color: #ff6b35;
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+        .nav-item p {
+            margin: 0;
+            color: #ccc;
+            font-size: 14px;
+        }
+        
         .form-container { 
             background: #222; 
             padding: 30px; 
@@ -427,6 +536,51 @@ dashboard_html = '''
         button:hover { 
             background: #e55a2b; 
         }
+        
+        /* Bulk Actions */
+        .bulk-actions {
+            background: #333;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+        }
+        .bulk-actions h3 {
+            margin: 0 0 15px 0;
+            color: #ff6b35;
+        }
+        .bulk-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .select-all-btn, .clear-all-btn, .bulk-delete-btn {
+            background: #666;
+            color: #fff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .bulk-delete-btn {
+            background: #dc3545;
+        }
+        .bulk-delete-btn:hover {
+            background: #c82333;
+        }
+        .bulk-delete-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .selected-count {
+            color: #ff6b35;
+            font-weight: bold;
+        }
+        
         .portfolio-grid { 
             display: grid; 
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
@@ -437,7 +591,12 @@ dashboard_html = '''
             background: #333; 
             border-radius: 10px; 
             overflow: hidden; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3); 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .portfolio-item.selected {
+            border: 3px solid #ff6b35;
+            box-shadow: 0 0 15px rgba(255, 107, 53, 0.5);
         }
         .portfolio-item img { 
             width: 100%; 
@@ -504,6 +663,23 @@ dashboard_html = '''
             margin-top: 5px;
             font-size: 14px;
         }
+        
+        /* Selection checkbox */
+        .selection-checkbox {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 20px;
+            height: 20px;
+            z-index: 10;
+        }
+        
+        /* Loading indicator */
+        .loading {
+            display: none;
+            color: #ff6b35;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -511,6 +687,36 @@ dashboard_html = '''
         <h1>Mind's Eye Photography Admin Dashboard</h1>
         <a href="/admin/logout" class="logout-btn">Logout</a>
     </div>
+    
+    <!-- Admin Navigation Menu -->
+    <div class="admin-nav">
+        <h2>🛠️ Admin Tools</h2>
+        <div class="nav-grid">
+            <div class="nav-item">
+                <a href="/admin/portfolio-management">
+                    <h3>📸 Portfolio Management</h3>
+                    <p>Edit existing images, update titles, descriptions, and categories</p>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/admin/background">
+                    <h3>🖼️ Background Management</h3>
+                    <p>Change the homepage background image</p>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/admin/category-management">
+                    <h3>🏷️ Category Management</h3>
+                    <p>Add, remove, and organize portfolio categories</p>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/admin/featured-image">
+                    <h3>⭐ Featured Image</h3>
+                    <p>Manage the weekly featured image section</p>
+                </a>
+            </div>
+        </div>
     
     {% if message %}
     <div class="message {{ 'success-message' if message_type == 'success' else 'error-message' }}">
@@ -525,8 +731,11 @@ dashboard_html = '''
                 <label for="image">Image Files (JPG/PNG) - Select Multiple</label>
                 <input type="file" id="image" name="image" accept="image/*" multiple required>
                 <div class="multi-upload-info">
-                    ✨ <strong>Multi-Upload:</strong> Hold Ctrl (Windows) or Cmd (Mac) to select multiple images at once!<br>
-                    📁 <strong>Persistent Storage:</strong> Images are now saved to Railway's persistent volume and will not disappear!
+                    ✨ <strong>Multi-Upload:</strong> Hold Ctrl (Windows) or Cmd (Mac) to select multiple images at once!  
+
+                    📁 <strong>Persistent Storage:</strong> Images are now saved to Railway's persistent volume and will not disappear!  
+
+                    🔐 <strong>New Login:</strong> Username: mindseye | Password: mindseye2025
                 </div>
                 <small style="color: #999;">Please add watermark before upload: "© 2025 Mind's Eye Photography"</small>
             </div>
@@ -558,37 +767,6 @@ dashboard_html = '''
         </form>
     </div>
     
-    <div>
-        <h2>Current Portfolio ({{ portfolio_data|length }} images)</h2>
-        <div class="portfolio-grid">
-            {% for item in portfolio_data %}
-            <div class="portfolio-item">
-                <img src="/photography-assets/{{ item.image }}" alt="{{ item.title }}" onerror="this.src='/static/assets/placeholder.jpg'">
-                <div class="portfolio-item-content">
-                    <h3>{{ item.title }}</h3>
-                    <p><strong>Description:</strong> {{ item.description }}</p>
-                    <p><strong>Image:</strong> {{ item.image }}</p>
-                    <p><strong>Created:</strong> {{ item.created_at[:10] if item.created_at else 'Unknown' }}</p>
-                    <div class="categories">
-                        <strong>Categories:</strong>
-                        {% if item.categories %}
-                            {% for category in item.categories %}
-                            <span class="category-tag">{{ category }}</span>
-                            {% endfor %}
-                        {% else %}
-                            <span class="category-tag">Uncategorized</span>
-                        {% endif %}
-                    </div>
-                    <form method="POST" action="/admin/delete" style="display: inline;">
-                        <input type="hidden" name="image_id" value="{{ item.id }}">
-                        <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this image?')">Delete</button>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</body>
-</html>
-'''
+    <!-- Bulk Actions -->
+    <div class="
 
