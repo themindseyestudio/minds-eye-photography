@@ -82,7 +82,6 @@ def admin_login_post():
     else:
         return render_template_string(login_html, error="Invalid credentials")
 
-
 @admin_bp.route('/admin/dashboard')
 def admin_dashboard():
     """Admin dashboard"""
@@ -396,6 +395,7 @@ login_html = '''
 </body>
 </html>
 '''
+
 # Enhanced Dashboard HTML template with bulk delete functionality
 dashboard_html = '''
 <!DOCTYPE html>
@@ -717,6 +717,7 @@ dashboard_html = '''
                 </a>
             </div>
         </div>
+    </div>
     
     {% if message %}
     <div class="message {{ 'success-message' if message_type == 'success' else 'error-message' }}">
@@ -768,5 +769,165 @@ dashboard_html = '''
     </div>
     
     <!-- Bulk Actions -->
-    <div class="
+    <div class="bulk-actions">
+        <h3>🗂️ Bulk Management ({{ portfolio_data|length }} images)</h3>
+        <div class="bulk-controls">
+            <button type="button" class="select-all-btn" onclick="selectAll()">Select All</button>
+            <button type="button" class="clear-all-btn" onclick="clearAll()">Clear All</button>
+            <button type="button" class="bulk-delete-btn" id="bulkDeleteBtn" onclick="bulkDelete()" disabled>
+                Delete Selected (<span id="selectedCount">0</span>)
+            </button>
+            <span class="loading" id="loadingIndicator">Processing...</span>
+        </div>
+    </div>
+    
+    <div>
+        <h2>Current Portfolio</h2>
+        <div class="portfolio-grid" id="portfolioGrid">
+            {% for item in portfolio_data %}
+            <div class="portfolio-item" data-id="{{ item.id }}">
+                <input type="checkbox" class="selection-checkbox" onchange="updateSelection()">
+                <img src="/photography-assets/{{ item.image }}" alt="{{ item.title }}" onerror="this.src='/static/assets/placeholder.jpg'">
+                <div class="portfolio-item-content">
+                    <h3>{{ item.title }}</h3>
+                    <p><strong>Description:</strong> {{ item.description }}</p>
+                    <p><strong>Image:</strong> {{ item.image }}</p>
+                    <p><strong>Created:</strong> {{ item.created_at[:10] if item.created_at else 'Unknown' }}</p>
+                    <div class="categories">
+                        <strong>Categories:</strong>
+                        {% if item.categories %}
+                            {% for category in item.categories %}
+                            <span class="category-tag">{{ category }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="category-tag">Uncategorized</span>
+                        {% endif %}
+                    </div>
+                    <form method="POST" action="/admin/delete" style="display: inline;">
+                        <input type="hidden" name="image_id" value="{{ item.id }}">
+                        <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this image?')">Delete Single</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 
+    <script>
+        function updateSelection() {
+            const checkboxes = document.querySelectorAll('.selection-checkbox');
+            const selectedCount = document.querySelectorAll('.selection-checkbox:checked').length;
+            
+            document.getElementById('selectedCount').textContent = selectedCount;
+            document.getElementById('bulkDeleteBtn').disabled = selectedCount === 0;
+            
+            // Update visual selection
+            checkboxes.forEach(checkbox => {
+                const item = checkbox.closest('.portfolio-item');
+                if (checkbox.checked) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+        
+        function selectAll() {
+            const checkboxes = document.querySelectorAll('.selection-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            updateSelection();
+        }
+        
+        function clearAll() {
+            const checkboxes = document.querySelectorAll('.selection-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateSelection();
+        }
+        
+        function bulkDelete() {
+            const selectedCheckboxes = document.querySelectorAll('.selection-checkbox:checked');
+            const selectedIds = Array.from(selectedCheckboxes).map(checkbox => 
+                checkbox.closest('.portfolio-item').dataset.id
+            );
+            
+            if (selectedIds.length === 0) {
+                alert('No images selected for deletion.');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to delete ${selectedIds.length} selected image(s)? This action cannot be undone.`)) {
+                return;
+            }
+            
+            // Show loading indicator
+            document.getElementById('loadingIndicator').style.display = 'inline';
+            document.getElementById('bulkDeleteBtn').disabled = true;
+            
+            // Send AJAX request
+            fetch('/admin/bulk-delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    image_ids: selectedIds
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                
+                if (data.success) {
+                    // Remove deleted items from DOM without page refresh
+                    selectedIds.forEach(id => {
+                        const item = document.querySelector(`[data-id="${id}"]`);
+                        if (item) {
+                            item.remove();
+                        }
+                    });
+                    
+                    // Update counts
+                    updateSelection();
+                    
+                    // Show success message
+                    showMessage(data.message, 'success');
+                } else {
+                    showMessage(data.message || 'Delete failed', 'error');
+                    document.getElementById('bulkDeleteBtn').disabled = false;
+                }
+            })
+            .catch(error => {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('bulkDeleteBtn').disabled = false;
+                showMessage('Network error occurred', 'error');
+                console.error('Error:', error);
+            });
+        }
+        
+        function showMessage(text, type) {
+            // Remove existing messages
+            const existingMessages = document.querySelectorAll('.message');
+            existingMessages.forEach(msg => msg.remove());
+            
+            // Create new message
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type === 'success' ? 'success-message' : 'error-message'}`;
+            messageDiv.textContent = text;
+            
+            // Insert after header
+            const header = document.querySelector('.header');
+            header.insertAdjacentElement('afterend', messageDiv);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
+'''
