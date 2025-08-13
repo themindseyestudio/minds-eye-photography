@@ -17,8 +17,8 @@ from src.routes.category_management import category_mgmt_bp
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
 
-# Configure photography assets directory (use static for Railway compatibility)
-PHOTOGRAPHY_ASSETS_DIR = os.path.join(app.static_folder, 'assets')
+# Configure photography assets directory to use Railway persistent volume
+PHOTOGRAPHY_ASSETS_DIR = '/app/uploads'
 
 # Ensure photography assets directory exists
 os.makedirs(PHOTOGRAPHY_ASSETS_DIR, exist_ok=True)
@@ -40,10 +40,14 @@ with app.app_context():
 
 @app.route('/photography-assets/<path:filename>')
 def serve_photography_assets(filename):
-    """Serve images from the static assets directory"""
+    """Serve images from the Railway persistent volume"""
     try:
         return send_from_directory(PHOTOGRAPHY_ASSETS_DIR, filename)
     except FileNotFoundError:
+        # Fallback to old location for backward compatibility during migration
+        old_assets_dir = os.path.join(app.static_folder, 'assets')
+        if os.path.exists(os.path.join(old_assets_dir, filename)):
+            return send_from_directory(old_assets_dir, filename)
         return "Image not found", 404
 
 def load_featured_data():
@@ -133,6 +137,7 @@ def serve(path):
             return send_from_directory(static_folder_path, 'index.html')
         else:
             return "index.html not found", 404
+
 
 if __name__ == '__main__':
     import os
