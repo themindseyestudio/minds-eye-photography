@@ -9,7 +9,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, 'src', 'static')
 
 # Separate photography assets directory (outside website structure)
-PHOTOGRAPHY_ASSETS_DIR = os.path.join(BASE_DIR, '..', 'photography-assets')
+PHOTOGRAPHY_ASSETS_DIR = os.path.join(BASE_DIR, 'photography-assets')
 
 # Data files (keep with website for easy admin updates)
 PORTFOLIO_DATA_FILE = os.path.join(STATIC_DIR, 'assets', 'portfolio-data-multicategory.json')
