@@ -1,6 +1,6 @@
-import os
 import sys
 import json
+import os
 # DON'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
@@ -48,26 +48,22 @@ def serve_photography_assets(filename):
         old_assets_dir = os.path.join(app.static_folder, 'assets')
         if os.path.exists(os.path.join(old_assets_dir, filename)):
             return send_from_directory(old_assets_dir, filename)
-        return "Image not found", 404
+        else:
+            return "Image not found", 404
 
-@app.route('/api/portfolio')
-def get_portfolio():
-    """API endpoint to get portfolio data"""
-    try:
-        portfolio_file = os.path.join(app.static_folder, 'assets', 'portfolio-data.json')
-        with open(portfolio_file, 'r') as f:
-            data = json.load(f)
-        return jsonify(data)
-    except Exception as e:
-        print(f"Error loading portfolio: {e}")
-        return jsonify([])
-
-@app.route('/', defaults={'path': ''})
+@app.route('/')
 @app.route('/<path:path>')
-def serve(path):
+def serve_static_or_index(path=''):
+    """Serve static files or index.html for client-side routing"""
     static_folder_path = app.static_folder
+    
     if static_folder_path is None:
-            return "Static folder not configured", 404
+        return "Static folder not configured", 404
+
+    # Special handling for featured-image route
+    if path == 'featured-image':
+        from src.routes.featured_image import featured_image_page
+        return featured_image_page()
 
     if path != "" and os.path.exists(os.path.join(static_folder_path, path)):
         return send_from_directory(static_folder_path, path)
@@ -80,4 +76,6 @@ def serve(path):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
+
