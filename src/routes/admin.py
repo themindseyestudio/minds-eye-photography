@@ -711,7 +711,7 @@ dashboard_html = '''
                 </a>
             </div>
             <div class="nav-item">
-                <a href="/admin/featured-image">
+                <a href="/admin/featured">
                     <h3>⭐ Featured Image</h3>
                     <p>Manage the weekly featured image section</p>
                 </a>
