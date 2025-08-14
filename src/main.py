@@ -1,12 +1,13 @@
 import os
 import sys
 import json
+
 # DON'T CHANGE THIS !!!
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.dirname(__file__))
 
 from flask import Flask, send_from_directory, request, jsonify
 from src.models.user import db
-from src.routes.user import user_bp
+from src.routes.user import user_bp, url_prefix='/api'
 from src.routes.contact import contact_bp
 from src.routes.admin import admin_bp
 from src.routes.background import background_bp
@@ -16,7 +17,7 @@ from src.routes.category_management import category_mgmt_bp
 from src.routes.backup import backup_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
-app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
+app.config['SECRET_KEY'] = 'asdf#F0SGvasgf$5SWG'
 
 # Configure photography assets directory to use Railway persistent volume
 PHOTOGRAPHY_ASSETS_DIR = '/app/uploads'
@@ -34,7 +35,7 @@ app.register_blueprint(category_mgmt_bp)
 app.register_blueprint(backup_bp)
 
 # uncomment if you need to use database
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(os.path.dirname(__file__), "database", "app.db")}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 with app.app_context():
@@ -52,21 +53,13 @@ def serve_photography_assets(filename):
             return send_from_directory(old_assets_dir, filename)
         return "Image not found", 404
 
-def load_featured_data():
-    """Load featured image data from JSON file"""
-    try:
-        featured_file = os.path.join(app.static_folder, 'assets', 'featured-image.json')
-        if os.path.exists(featured_file):
-            with open(featured_file, 'r') as f:
-                return json.load(f)
-    except Exception as e:
-        print(f"Error loading featured data: {e}")
-    return None
+# REMOVED: load_featured_data() function - now uses database only
 
 @app.route('/featured-image')
 def featured_image_page():
-    """Featured image page with Open Graph meta tags"""
-    featured_data = load_featured_data()
+    """Featured image page with Open Graph meta tags - USES DATABASE ONLY"""
+    # Import here to avoid circular imports
+    from src.models.user import FeaturedImage
     
     # Default values
     og_title = "Mind's Eye Photography - Where Moments Meet Imagination"
@@ -74,12 +67,17 @@ def featured_image_page():
     og_image = "https://www.themindseyestudio.com/assets/logo.png"  # Default fallback
     og_url = "https://www.themindseyestudio.com/featured-image"
     
-    # If we have featured data, use it for Open Graph
-    if featured_data:
-        og_title = f"{featured_data.get('title', 'Featured Image')} - Mind's Eye Photography"
-        og_description = featured_data.get('description', og_description)
-        if featured_data.get('image'):
-            og_image = f"https://www.themindseyestudio.com/photography-assets/{featured_data['image']}"
+    # Get featured image from database (not JSON file)
+    try:
+        featured_image = FeaturedImage.query.filter_by(is_active=True).first()
+        if featured_image:
+            og_title = f"{featured_image.title} - Mind's Eye Photography"
+            og_description = featured_image.description or og_description
+            if featured_image.image_filename:
+                og_image = f"https://www.themindseyestudio.com/photography-assets/{featured_image.image_filename}"
+    except Exception as e:
+        print(f"Error loading featured image from database: {e}")
+        # Use defaults if database query fails
     
     # Read the base index.html and inject Open Graph meta tags
     index_path = os.path.join(app.static_folder, 'index.html')
@@ -89,27 +87,27 @@ def featured_image_page():
         
         # Inject Open Graph meta tags into the head section
         og_meta_tags = f'''
-    <!-- Open Graph Meta Tags for Social Media -->
-    <meta property="og:title" content="{og_title}">
-    <meta property="og:description" content="{og_description}">
-    <meta property="og:image" content="{og_image}">
-    <meta property="og:url" content="{og_url}">
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Mind's Eye Photography">
-    
-    <!-- Twitter Card Meta Tags -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{og_title}">
-    <meta name="twitter:description" content="{og_description}">
-    <meta name="twitter:image" content="{og_image}">
-    
-    <!-- Facebook Meta Tags -->
-    <meta property="fb:app_id" content="">
-    
-    <!-- Additional Meta Tags -->
-    <meta name="description" content="{og_description}">
-    <meta name="keywords" content="photography, wildlife, landscape, professional, Madison, Wisconsin">
-    <meta name="author" content="Rick Corey">
+        <!-- Open Graph Meta Tags for Social Media -->
+        <meta property="og:title" content="{og_title}">
+        <meta property="og:description" content="{og_description}">
+        <meta property="og:image" content="{og_image}">
+        <meta property="og:url" content="{og_url}">
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="Mind's Eye Photography">
+        
+        <!-- Twitter Card Meta Tags -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{og_title}">
+        <meta name="twitter:description" content="{og_description}">
+        <meta name="twitter:image" content="{og_image}">
+        
+        <!-- Facebook Meta Tags -->
+        <meta property="fb:app_id" content="">
+        
+        <!-- Additional Meta Tags -->
+        <meta name="description" content="{og_description}">
+        <meta name="keywords" content="photography, wildlife, landscape, professional, Madison, Wisconsin">
+        <meta name="author" content="Rick Corey">
         '''
         
         # Insert the meta tags before the closing </head> tag
@@ -125,12 +123,12 @@ def featured_image_page():
 def serve(path):
     static_folder_path = app.static_folder
     if static_folder_path is None:
-            return "Static folder not configured", 404
-
+        return "Static folder not configured", 404
+    
     # Special handling for featured-image route
     if path == 'featured-image':
         return featured_image_page()
-
+    
     if path != "" and os.path.exists(os.path.join(static_folder_path, path)):
         return send_from_directory(static_folder_path, path)
     else:
@@ -139,7 +137,6 @@ def serve(path):
             return send_from_directory(static_folder_path, 'index.html')
         else:
             return "index.html not found", 404
-
 
 if __name__ == '__main__':
     import os
