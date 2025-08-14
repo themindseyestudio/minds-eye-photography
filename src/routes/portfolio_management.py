@@ -285,7 +285,7 @@ def delete_portfolio_image():
         return jsonify({'success': False, 'error': 'Not authenticated'})
     
     try:
-        from src.models.user import PortfolioImage
+        from models.user import PortfolioImage
         
         data = request.get_json()
         image_id = data.get('image_id')
@@ -321,7 +321,7 @@ def delete_portfolio_image():
 def get_portfolio_data():
     """Get portfolio data from database for frontend"""
     try:
-        from src.models.user import PortfolioImage
+        from models.user import PortfolioImage
         
         images = PortfolioImage.query.all()
         portfolio_data = []
