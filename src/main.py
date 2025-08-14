@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from flask import Flask, send_from_directory, request, jsonify
 from models.user import db
-from routes.user import user_bp
+from src.routes.user import user_bp
 from routes.contact import contact_bp
 from routes.admin import admin_bp
 from routes.background import background_bp
