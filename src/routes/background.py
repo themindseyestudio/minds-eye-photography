@@ -4,7 +4,8 @@ import json
 from flask import Blueprint, request, render_template_string, redirect, url_for, session, flash
 from werkzeug.utils import secure_filename
 import uuid
-from ..config import PHOTOGRAPHY_ASSETS_DIR, PORTFOLIO_DATA_FILE, LEGACY_ASSETS_DIR
+from config import PHOTOGRAPHY_ASSETS_DIR, PORTFOLIO_DATA_FILE, LEGACY_ASSETS_DIR
+
 
 background_bp = Blueprint('background', __name__)
 
