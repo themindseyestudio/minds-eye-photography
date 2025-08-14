@@ -22,7 +22,7 @@ def portfolio_management():
         return redirect(url_for('admin.admin_login'))
     
     # Import here to avoid circular imports
-    from src.models.user import PortfolioImage, Category
+    from models.user import PortfolioImage, Category
     
     # Get portfolio data from database (not JSON file)
     try:
