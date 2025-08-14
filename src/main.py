@@ -13,6 +13,7 @@ from src.routes.background import background_bp
 from src.routes.featured_image import featured_bp
 from src.routes.portfolio_management import portfolio_mgmt_bp
 from src.routes.category_management import category_mgmt_bp
+from src.routes.backup import backup_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
@@ -30,6 +31,7 @@ app.register_blueprint(background_bp)
 app.register_blueprint(featured_bp)
 app.register_blueprint(portfolio_mgmt_bp)
 app.register_blueprint(category_mgmt_bp)
+app.register_blueprint(backup_bp)
 
 # uncomment if you need to use database
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
