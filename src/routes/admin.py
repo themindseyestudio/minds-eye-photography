@@ -716,6 +716,12 @@ dashboard_html = '''
                     <p>Manage the weekly featured image section</p>
                 </a>
             </div>
+            <div class="nav-item">
+                <a href="/admin/backup">
+                    <h3>💾 Backup System</h3>
+                    <p>Create and download portfolio backups</p>
+                </a>
+            </div>
         </div>
     </div>
     
