@@ -4,7 +4,7 @@ from flask import Blueprint, request, render_template_string, redirect, url_for,
 from PIL import Image
 from PIL.ExifTags import TAGS
 from datetime import datetime
-from ..config import PHOTOGRAPHY_ASSETS_DIR, PORTFOLIO_DATA_FILE
+from config import PHOTOGRAPHY_ASSETS_DIR, PORTFOLIO_DATA_FILE
 
 featured_bp = Blueprint('featured', __name__)
 
