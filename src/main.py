@@ -6,15 +6,15 @@ import json
 sys.path.insert(0, os.path.dirname(__file__))
 
 from flask import Flask, send_from_directory, request, jsonify
-from src.models.user import db
-from src.routes.user import user_bp
-from src.routes.contact import contact_bp
-from src.routes.admin import admin_bp
-from src.routes.background import background_bp
-from src.routes.featured_image import featured_bp
-from src.routes.portfolio_management import portfolio_mgmt_bp
-from src.routes.category_management import category_mgmt_bp
-from src.routes.backup import backup_bp
+from models.user import db
+from routes.user import user_bp
+from routes.contact import contact_bp
+from routes.admin import admin_bp
+from routes.background import background_bp
+from routes.featured_image import featured_bp
+from routes.portfolio_management import portfolio_mgmt_bp
+from routes.category_management import category_mgmt_bp
+from routes.backup import backup_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = 'asdf#F0SGvasgf$5SWG'
