@@ -44,7 +44,7 @@ def extract_exif_data(image_path):
                 exif = {TAGS[key]: value for key, value in exif_dict.items() if key in TAGS}
                 print(f"Found EXIF tags: {list(exif.keys())}")
                 
-               # Format camera make/model
+                # Format camera make/model - FIXED DUPLICATION
                 make = exif.get('Make', '').strip()
                 model = exif.get('Model', '').strip()
                 # Avoid duplication if model already contains make
@@ -56,7 +56,6 @@ def extract_exif_data(image_path):
                     camera = make.strip()
                 else:
                     camera = 'Unknown'
-
                 
                 # Format aperture
                 aperture = exif.get('FNumber', 'Unknown')
@@ -117,6 +116,10 @@ def featured_admin():
         portfolio_data = load_portfolio_data()
         featured_data = load_featured_data()
         
+        # Get message from URL parameters
+        message = request.args.get('message')
+        message_type = request.args.get('message_type', 'info')
+        
         admin_html = '''
         <!DOCTYPE html>
         <html>
@@ -161,6 +164,23 @@ def featured_admin():
                     border-radius: 10px; 
                     margin-bottom: 30px; 
                     border: 2px solid #ff6b35; 
+                }
+                .story-section {
+                    background: #2a2a2a;
+                    padding: 15px;
+                    border-radius: 8px;
+                    margin-top: 15px;
+                }
+                .story-title {
+                    color: #ff6b35;
+                    font-weight: bold;
+                    margin-bottom: 10px;
+                    font-size: 16px;
+                }
+                .story-content {
+                    color: #fff;
+                    line-height: 1.6;
+                    font-size: 14px;
                 }
                 .portfolio-grid { 
                     display: grid; 
@@ -267,12 +287,45 @@ def featured_admin():
                     font-size: 14px; 
                     margin-top: 5px; 
                 }
+                .edit-form {
+                    background: #2a2a2a;
+                    padding: 20px;
+                    border-radius: 10px;
+                    margin-top: 20px;
+                }
+                .form-group {
+                    margin-bottom: 20px;
+                }
+                .form-group label {
+                    display: block;
+                    color: #ff6b35;
+                    font-weight: bold;
+                    margin-bottom: 8px;
+                }
+                .form-group input, .form-group textarea {
+                    width: 100%;
+                    padding: 10px;
+                    background: #1a1a1a;
+                    border: 1px solid #555;
+                    border-radius: 5px;
+                    color: #fff;
+                    font-size: 14px;
+                }
+                .form-group textarea {
+                    min-height: 120px;
+                    resize: vertical;
+                    font-family: Arial, sans-serif;
+                }
+                .form-group input:focus, .form-group textarea:focus {
+                    outline: none;
+                    border-color: #ff6b35;
+                }
             </style>
         </head>
         <body>
             <div class="header">
                 <h1>Featured Image Management</h1>
-                <a href="/admin" class="btn">Back to Admin Dashboard</a>
+                <a href="/admin/dashboard" class="btn">Back to Admin Dashboard</a>
             </div>
 
             {% if message %}
@@ -294,6 +347,14 @@ def featured_admin():
                                     <span class="category-tag">{{ category }}</span>
                                 {% endfor %}
                             </div>
+                            
+                            {% if featured_data.story %}
+                                <div class="story-section">
+                                    <div class="story-title">Story</div>
+                                    <div class="story-content">{{ featured_data.story }}</div>
+                                </div>
+                            {% endif %}
+                            
                             {% if featured_data.exif_data %}
                                 <div class="exif-info">
                                     <h4 style="color: #ff6b35; margin: 0 0 10px 0;">EXIF Data</h4>
@@ -348,6 +409,26 @@ def featured_admin():
                             </p>
                         </div>
                     </div>
+                    
+                    <!-- Edit Featured Image Form -->
+                    <div class="edit-form">
+                        <h3 style="color: #ff6b35; margin-bottom: 20px;">Edit Featured Image Details</h3>
+                        <form method="POST" action="/admin/featured/update">
+                            <div class="form-group">
+                                <label for="title">Title:</label>
+                                <input type="text" id="title" name="title" value="{{ featured_data.title }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="description">Description:</label>
+                                <textarea id="description" name="description" required>{{ featured_data.description }}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="story">Story:</label>
+                                <textarea id="story" name="story" placeholder="Tell the story behind this image...">{{ featured_data.story or '' }}</textarea>
+                            </div>
+                            <button type="submit" class="btn">Update Featured Image Details</button>
+                        </form>
+                    </div>
                 </div>
             {% else %}
                 <div class="current-featured">
@@ -382,13 +463,14 @@ def featured_admin():
         '''
         
         return render_template_string(admin_html, 
-                                    portfolio_data=portfolio_data,
+                                    portfolio_data=portfolio_data, 
                                     featured_data=featured_data,
-                                    message=request.args.get('message'),
-                                    message_type=request.args.get('message_type', 'success'))
-        
+                                    message=message,
+                                    message_type=message_type)
+    
     except Exception as e:
-        return f"Error loading featured admin: {str(e)}"
+        print(f"Error in featured admin: {e}")
+        return f"Error loading featured admin: {e}", 500
 
 @featured_bp.route('/admin/featured/set', methods=['POST'])
 def set_featured_image():
@@ -412,14 +494,19 @@ def set_featured_image():
         if not selected_image:
             return redirect(url_for('featured.featured_admin', message='Image not found', message_type='error'))
         
-        # Create featured image data with EXIF extraction
+        # Extract EXIF data from the image
+        image_path = os.path.join(PHOTOGRAPHY_ASSETS_DIR, selected_image['image'])
+        exif_data = extract_exif_data(image_path)
+        
+        # Create featured image data
         featured_data = {
             'id': selected_image['id'],
             'title': selected_image['title'],
             'description': selected_image['description'],
+            'story': '',  # Empty story field to be filled by user
             'image': selected_image['image'],
             'categories': selected_image['categories'],
-            'exif_data': extract_exif_data(os.path.join(PHOTOGRAPHY_ASSETS_DIR, selected_image['image'])),
+            'exif_data': exif_data,
             'set_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
         
@@ -428,7 +515,37 @@ def set_featured_image():
             return redirect(url_for('featured.featured_admin', message='Featured image set successfully!', message_type='success'))
         else:
             return redirect(url_for('featured.featured_admin', message='Error saving featured image', message_type='error'))
-            
+    
     except Exception as e:
-        return redirect(url_for('featured.featured_admin', message=f'Error: {str(e)}', message_type='error'))
+        print(f"Error setting featured image: {e}")
+        return redirect(url_for('featured.featured_admin', message=f'Error: {e}', message_type='error'))
+
+@featured_bp.route('/admin/featured/update', methods=['POST'])
+def update_featured_image():
+    """Update featured image details including story"""
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin.admin_login'))
+    
+    try:
+        # Load current featured data
+        featured_data = load_featured_data()
+        
+        if not featured_data:
+            return redirect(url_for('featured.featured_admin', message='No featured image to update', message_type='error'))
+        
+        # Update with form data
+        featured_data['title'] = request.form.get('title', '').strip()
+        featured_data['description'] = request.form.get('description', '').strip()
+        featured_data['story'] = request.form.get('story', '').strip()
+        featured_data['updated_date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Save updated data
+        if save_featured_data(featured_data):
+            return redirect(url_for('featured.featured_admin', message='Featured image updated successfully!', message_type='success'))
+        else:
+            return redirect(url_for('featured.featured_admin', message='Error updating featured image', message_type='error'))
+    
+    except Exception as e:
+        print(f"Error updating featured image: {e}")
+        return redirect(url_for('featured.featured_admin', message=f'Error: {e}', message_type='error'))
 
