@@ -1,6 +1,5 @@
 // Enhanced Featured Image Component - Final Version with EXIF Badge Styling
 // Professional Photography Showcase with Orange Badge EXIF Data
-
 class EnhancedFeaturedImage {
     constructor() {
         this.featuredData = null;
