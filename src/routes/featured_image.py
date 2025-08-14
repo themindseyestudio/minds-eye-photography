@@ -44,10 +44,19 @@ def extract_exif_data(image_path):
                 exif = {TAGS[key]: value for key, value in exif_dict.items() if key in TAGS}
                 print(f"Found EXIF tags: {list(exif.keys())}")
                 
-                # Format camera make/model
+               # Format camera make/model
                 make = exif.get('Make', '').strip()
                 model = exif.get('Model', '').strip()
-                camera = f"{make} {model}".strip() if make or model else 'Unknown'
+                # Avoid duplication if model already contains make
+                if make and model and not model.startswith(make):
+                    camera = f"{make} {model}".strip()
+                elif model:
+                    camera = model.strip()
+                elif make:
+                    camera = make.strip()
+                else:
+                    camera = 'Unknown'
+
                 
                 # Format aperture
                 aperture = exif.get('FNumber', 'Unknown')
