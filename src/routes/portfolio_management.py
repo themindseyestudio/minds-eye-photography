@@ -1,7 +1,7 @@
 import os
 import json
 from flask import Blueprint, request, render_template_string, redirect, url_for, session, jsonify
-from src.models.user import db
+from models.user import User, db
 
 portfolio_mgmt_bp = Blueprint('portfolio_mgmt', __name__)
 
