@@ -1,8 +1,0 @@
-[build]
-builder = "NIXPACKS"
-
-[deploy]
-startCommand = "python src/main.py"
-
-[[services]]
-name = "web"
