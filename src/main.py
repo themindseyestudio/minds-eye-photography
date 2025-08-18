@@ -69,6 +69,13 @@ def serve(path):
 def serve_assets(filename):
     """Serve assets from the assets directory"""
     return send_from_directory(os.path.join(app.static_folder, 'assets'), filename)
+@app.route('/health')
+def health():
+    return 'OK', 200
+
+@app.route('/')
+def index():
+    return app.send_static_file('index.html')
 
 if __name__ == '__main__':
     import os
