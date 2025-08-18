@@ -62,9 +62,8 @@ def check_github_connection():
         return False, "GitHub token not configured in environment variables"
     
     try:
-        # Fixed: Use proper Authorization header format for Personal Access Tokens
         headers = {
-            'Authorization': f'Bearer {token}',  # Changed from 'token' to 'Bearer'
+            'Authorization': f'Bearer {token}',
             'Accept': 'application/vnd.github.v3+json',
             'User-Agent': 'MindsEyePhotography-Backup/1.0'
         }
@@ -91,49 +90,21 @@ def check_github_connection():
         print(f"DEBUG: Unexpected error: {e}")
         return False, f"❌ Unexpected error: {str(e)}"
 
-def create_github_backup(repo_owner, repo_name, backup_data):
-    """Create backup in GitHub repository"""
-    token = get_github_token()
-    if not token:
-        return False, "GitHub token not configured"
-    
+def create_local_backup(custom_filename=None):
+    """Create comprehensive local backup as tar.gz file with custom filename"""
     try:
-        # Fixed: Use proper Authorization header format
-        headers = {
-            'Authorization': f'Bearer {token}',  # Changed from 'token' to 'Bearer'
-            'Accept': 'application/vnd.github.v3+json',
-            'User-Agent': 'MindsEyePhotography-Backup/1.0'
-        }
-        
-        # Create backup filename
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"backup_{timestamp}.json"
-        
-        # Encode backup data
-        content = base64.b64encode(json.dumps(backup_data, indent=2, default=str).encode()).decode()
-        
-        # Create file in repository
-        url = f'https://api.github.com/repos/{repo_owner}/{repo_name}/contents/backups/{filename}'
-        data = {
-            'message': f'Automated backup - {timestamp}',
-            'content': content
-        }
-        
-        response = requests.put(url, headers=headers, json=data, timeout=30)
-        
-        if response.status_code in [200, 201]:
-            return True, f"✅ Backup created: {filename}"
+        # Use custom filename or generate timestamp-based one
+        if custom_filename:
+            # Sanitize the filename
+            safe_filename = secure_filename(custom_filename)
+            if not safe_filename.endswith('.tar.gz'):
+                safe_filename += '.tar.gz'
+            backup_filename = safe_filename
         else:
-            return False, f"❌ GitHub API error: {response.status_code} - {response.text[:200]}"
-            
-    except Exception as e:
-        return False, f"❌ Backup error: {str(e)}"
-
-def create_local_backup():
-    """Create comprehensive local backup as tar.gz file"""
-    try:
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        backup_filename = f"minds_eye_backup_{timestamp}.tar.gz"
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            backup_filename = f"minds_eye_backup_{timestamp}.tar.gz"
+        
+        # Create backup in a temporary directory
         temp_dir = tempfile.mkdtemp()
         backup_path = os.path.join(temp_dir, backup_filename)
         
@@ -143,11 +114,13 @@ def create_local_backup():
             db_path = 'src/database/app.db'
             if os.path.exists(db_path):
                 tar.add(db_path, arcname='database/app.db')
+                print(f"Added database: {db_path}")
             
             # Add all images
             assets_path = 'src/static/assets'
             if os.path.exists(assets_path):
                 tar.add(assets_path, arcname='assets')
+                print(f"Added assets: {assets_path}")
             
             # Add configuration files
             config_files = [
@@ -158,20 +131,27 @@ def create_local_backup():
             for config_file in config_files:
                 if os.path.exists(config_file):
                     tar.add(config_file, arcname=f'config/{os.path.basename(config_file)}')
+                    print(f"Added config: {config_file}")
         
         # Get file size
         file_size = os.path.getsize(backup_path)
         size_mb = round(file_size / (1024 * 1024), 2)
         
+        print(f"Backup created: {backup_path} ({size_mb} MB)")
+        
         return True, {
             'filename': backup_filename,
             'path': backup_path,
             'size': f"{size_mb} MB",
-            'timestamp': timestamp
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
         
     except Exception as e:
+        print(f"Backup error: {e}")
         return False, f"❌ Local backup failed: {str(e)}"
+
+# Store backup files temporarily for download
+backup_files = {}
 
 # API Routes for backup functionality
 @admin_bp.route('/api/admin/backup/github/status')
@@ -202,7 +182,6 @@ def api_github_backup_status():
 def api_github_backup_setup():
     """API endpoint to set up GitHub auto-backup"""
     try:
-        # First check if GitHub connection works
         success, message = check_github_connection()
         
         if not success:
@@ -211,7 +190,6 @@ def api_github_backup_setup():
                 'message': f"GitHub connection failed: {message}"
             }), 400
         
-        # If connection works, setup is successful
         return jsonify({
             'message': f"✅ GitHub auto-backup configured successfully! {message}"
         })
@@ -224,14 +202,22 @@ def api_github_backup_setup():
 
 @admin_bp.route('/api/admin/backup/local', methods=['POST'])
 def api_local_backup():
-    """API endpoint to create local backup"""
+    """API endpoint to create local backup with custom filename"""
     try:
-        success, result = create_local_backup()
+        # Get custom filename from request
+        data = request.get_json() or {}
+        custom_filename = data.get('filename', '').strip()
+        
+        success, result = create_local_backup(custom_filename)
         
         if success:
+            # Store the backup file path for download
+            backup_files[result['filename']] = result['path']
+            
             return jsonify({
                 'filename': result['filename'],
                 'size': result['size'],
+                'timestamp': result['timestamp'],
                 'download_url': f"/api/admin/backup/download/{result['filename']}"
             })
         else:
@@ -244,6 +230,31 @@ def api_local_backup():
         return jsonify({
             'error': True,
             'message': f"Local backup failed: {str(e)}"
+        }), 500
+
+@admin_bp.route('/api/admin/backup/download/<filename>')
+def api_download_backup(filename):
+    """API endpoint to download backup file"""
+    try:
+        if filename not in backup_files:
+            return jsonify({'error': 'Backup file not found'}), 404
+        
+        file_path = backup_files[filename]
+        
+        if not os.path.exists(file_path):
+            return jsonify({'error': 'Backup file no longer exists'}), 404
+        
+        return send_file(
+            file_path,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/gzip'
+        )
+        
+    except Exception as e:
+        return jsonify({
+            'error': True,
+            'message': f"Download failed: {str(e)}"
         }), 500
 
 @admin_bp.route('/admin')
@@ -320,7 +331,7 @@ def admin_dashboard():
 
 @admin_bp.route('/admin/backup')
 def backup_management():
-    """Backup management interface"""
+    """Backup management interface with custom filename input"""
     return render_template_string('''
     <!DOCTYPE html>
     <html>
@@ -351,6 +362,10 @@ def backup_management():
             .back-btn:hover { background: #666; }
             ul { margin-left: 20px; }
             ul li { margin-bottom: 5px; color: #ccc; }
+            .filename-input { padding: 10px; margin: 10px 5px; background: #333; color: #fff; border: 1px solid #555; border-radius: 4px; width: 300px; }
+            .filename-input::placeholder { color: #aaa; }
+            .input-group { margin: 15px 0; }
+            .input-group label { display: block; margin-bottom: 5px; color: #ff6b35; font-weight: bold; }
         </style>
     </head>
     <body>
@@ -363,8 +378,15 @@ def backup_management():
             
             <div class="backup-section">
                 <h3>Create Local Backup</h3>
-                <p>Create an immediate backup to local disk before making changes or enhancements</p>
-                <button class="btn" onclick="createLocalBackup()">Create Local Backup</button>
+                <p>Create a comprehensive backup with custom filename that downloads directly to your computer</p>
+                
+                <div class="input-group">
+                    <label for="backupFilename">Backup Filename (optional):</label>
+                    <input type="text" id="backupFilename" class="filename-input" placeholder="e.g., my_portfolio_backup or leave blank for auto-generated">
+                    <small style="color: #aaa; display: block; margin-top: 5px;">Leave blank for timestamp-based filename. .tar.gz will be added automatically.</small>
+                </div>
+                
+                <button class="btn" onclick="createLocalBackup()">Create & Download Backup</button>
                 
                 <h4 style="color: #ff6b35; margin-top: 20px;">Backup includes:</h4>
                 <ul>
@@ -412,27 +434,40 @@ def backup_management():
         <script>
         async function createLocalBackup() {
             const statusDiv = document.getElementById('status');
-            statusDiv.innerHTML = '<div class="status info">Creating local backup...</div>';
+            const filenameInput = document.getElementById('backupFilename');
+            const customFilename = filenameInput.value.trim();
+            
+            statusDiv.innerHTML = '<div class="status info">Creating comprehensive backup...</div>';
             
             try {
                 const response = await fetch('/api/admin/backup/local', {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        filename: customFilename
+                    })
                 });
                 
                 if (response.ok) {
                     const result = await response.json();
                     statusDiv.innerHTML = `<div class="status success">
-                        Local backup created successfully!<br>
+                        ✅ Backup created successfully!<br>
                         <strong>File:</strong> ${result.filename}<br>
                         <strong>Size:</strong> ${result.size}<br>
-                        <a href="${result.download_url}" class="btn" style="margin-top: 10px;">Download Backup</a>
+                        <strong>Created:</strong> ${result.timestamp}<br>
+                        <a href="${result.download_url}" class="btn" style="margin-top: 10px;">Download Backup Now</a>
                     </div>`;
+                    
+                    // Auto-download the backup
+                    window.location.href = result.download_url;
                 } else {
                     const error = await response.json();
-                    statusDiv.innerHTML = `<div class="status error">Backup failed: ${error.message}</div>`;
+                    statusDiv.innerHTML = `<div class="status error">❌ Backup failed: ${error.message}</div>`;
                 }
             } catch (error) {
-                statusDiv.innerHTML = `<div class="status error">Backup failed: ${error.message}</div>`;
+                statusDiv.innerHTML = `<div class="status error">❌ Backup failed: ${error.message}</div>`;
             }
         }
         
@@ -490,7 +525,7 @@ def backup_management():
     </html>
     ''')
 
-# Placeholder for remaining admin routes - these would be included in the full file
+# Placeholder for remaining admin routes
 @admin_bp.route('/admin/portfolio')
 def portfolio_management():
     """Portfolio management interface - placeholder"""
