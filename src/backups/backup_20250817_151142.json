@@ -1,0 +1,368 @@
+{
+  "timestamp": "20250817_151142",
+  "images": [
+    {
+      "id": 7,
+      "filename": "b221528c-a841-4458-a35a-904997d7813c.jpg",
+      "original_filename": "b221528c-a841-4458-a35a-904997d7813c.jpg",
+      "title": "FEST",
+      "description": "FEST",
+      "camera_make": "Canon Canon EOS R8",
+      "camera_model": null,
+      "lens": "EF24-105mm f/4L IS USM",
+      "aperture": "4.0",
+      "shutter_speed": "0.0013333333333333333",
+      "iso": "100",
+      "focal_length": null,
+      "date_taken": null,
+      "file_size": null,
+      "width": null,
+      "height": null,
+      "is_active": true,
+      "sort_order": 0,
+      "created_at": "2025-08-17T14:46:55.668861",
+      "updated_at": "2025-08-17T14:46:55.668863",
+      "categories": [
+        {
+          "id": 1,
+          "name": "Nature",
+          "description": "Natural landscapes and wildlife photography",
+          "sort_order": 1,
+          "is_default": true,
+          "created_at": "2025-08-17T14:30:18.754821"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "filename": "c9448702-a993-4c0b-a865-bc9052e78ab2.png",
+      "original_filename": "c9448702-a993-4c0b-a865-bc9052e78ab2.png",
+      "title": "FLOWER",
+      "description": "FLOWER",
+      "camera_make": "Canon Canon EOS R8",
+      "camera_model": null,
+      "lens": "EF24-105mm f/4L IS USM",
+      "aperture": "4.0",
+      "shutter_speed": "0.0013333333333333333",
+      "iso": "100",
+      "focal_length": null,
+      "date_taken": null,
+      "file_size": null,
+      "width": null,
+      "height": null,
+      "is_active": true,
+      "sort_order": 0,
+      "created_at": "2025-08-17T14:46:55.672650",
+      "updated_at": "2025-08-17T14:46:55.672652",
+      "categories": [
+        {
+          "id": 6,
+          "name": "Flora",
+          "description": "Flora photography",
+          "sort_order": 3,
+          "is_default": false,
+          "created_at": "2025-08-17T14:46:55.665070"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "filename": "08028e51-eb08-4823-9918-734077ef05fb.jpg",
+      "original_filename": "08028e51-eb08-4823-9918-734077ef05fb.jpg",
+      "title": "Bridges trails waterfalls 3",
+      "description": "Bridges trails waterfalls",
+      "camera_make": "Canon Canon EOS R8",
+      "camera_model": null,
+      "lens": "EF24-105mm f/4L IS USM",
+      "aperture": "4.0",
+      "shutter_speed": "0.0013333333333333333",
+      "iso": "100",
+      "focal_length": null,
+      "date_taken": null,
+      "file_size": null,
+      "width": null,
+      "height": null,
+      "is_active": true,
+      "sort_order": 0,
+      "created_at": "2025-08-17T14:46:55.674741",
+      "updated_at": "2025-08-17T14:46:55.674743",
+      "categories": [
+        {
+          "id": 1,
+          "name": "Nature",
+          "description": "Natural landscapes and wildlife photography",
+          "sort_order": 1,
+          "is_default": true,
+          "created_at": "2025-08-17T14:30:18.754821"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "filename": "3d6fc821-1314-48e2-ab6a-de85397d2311.jpg",
+      "original_filename": "3d6fc821-1314-48e2-ab6a-de85397d2311.jpg",
+      "title": "Bridges trails waterfalls 2",
+      "description": "Bridges trails waterfalls",
+      "camera_make": "Canon Canon EOS R8",
+      "camera_model": null,
+      "lens": "EF24-105mm f/4L IS USM",
+      "aperture": "4.0",
+      "shutter_speed": "0.0013333333333333333",
+      "iso": "100",
+      "focal_length": null,
+      "date_taken": null,
+      "file_size": null,
+      "width": null,
+      "height": null,
+      "is_active": true,
+      "sort_order": 0,
+      "created_at": "2025-08-17T14:46:55.676328",
+      "updated_at": "2025-08-17T14:46:55.676330",
+      "categories": [
+        {
+          "id": 1,
+          "name": "Nature",
+          "description": "Natural landscapes and wildlife photography",
+          "sort_order": 1,
+          "is_default": true,
+          "created_at": "2025-08-17T14:30:18.754821"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "filename": "a1801164-0d42-4e25-ad38-754e2315de5c.jpg",
+      "original_filename": "a1801164-0d42-4e25-ad38-754e2315de5c.jpg",
+      "title": "Bridges trails waterfalls 1",
+      "description": "Bridges trails waterfalls",
+      "camera_make": "Canon Canon EOS R8",
+      "camera_model": null,
+      "lens": "EF24-105mm f/4L IS USM",
+      "aperture": "4.0",
+      "shutter_speed": "0.0013333333333333333",
+      "iso": "100",
+      "focal_length": null,
+      "date_taken": null,
+      "file_size": null,
+      "width": null,
+      "height": null,
+      "is_active": true,
+      "sort_order": 0,
+      "created_at": "2025-08-17T14:46:55.677871",
+      "updated_at": "2025-08-17T14:46:55.677873",
+      "categories": [
+        {
+          "id": 1,
+          "name": "Nature",
+          "description": "Natural landscapes and wildlife photography",
+          "sort_order": 1,
+          "is_default": true,
+          "created_at": "2025-08-17T14:30:18.754821"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "filename": "c55c35d7-ebd0-46b0-be27-b3b8e8f3011b.jpg",
+      "original_filename": "c55c35d7-ebd0-46b0-be27-b3b8e8f3011b.jpg",
+      "title": "Flora Bulk 2",
+      "description": "Flora Bulk",
+      "camera_make": "Canon Canon EOS R8",
+      "camera_model": null,
+      "lens": "EF24-105mm f/4L IS USM",
+      "aperture": "4.0",
+      "shutter_speed": "0.0013333333333333333",
+      "iso": "100",
+      "focal_length": null,
+      "date_taken": null,
+      "file_size": null,
+      "width": null,
+      "height": null,
+      "is_active": true,
+      "sort_order": 0,
+      "created_at": "2025-08-17T14:46:55.679385",
+      "updated_at": "2025-08-17T14:46:55.679387",
+      "categories": [
+        {
+          "id": 6,
+          "name": "Flora",
+          "description": "Flora photography",
+          "sort_order": 3,
+          "is_default": false,
+          "created_at": "2025-08-17T14:46:55.665070"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "filename": "c384c832-8eae-4ae5-ae43-bedbf399faa8.jpg",
+      "original_filename": "c384c832-8eae-4ae5-ae43-bedbf399faa8.jpg",
+      "title": "Flora Bulk 1",
+      "description": "Flora Bulk",
+      "camera_make": "Canon Canon EOS R8",
+      "camera_model": null,
+      "lens": "EF24-105mm f/4L IS USM",
+      "aperture": "4.0",
+      "shutter_speed": "0.0013333333333333333",
+      "iso": "100",
+      "focal_length": null,
+      "date_taken": null,
+      "file_size": null,
+      "width": null,
+      "height": null,
+      "is_active": true,
+      "sort_order": 0,
+      "created_at": "2025-08-17T14:46:55.680877",
+      "updated_at": "2025-08-17T14:46:55.680879",
+      "categories": [
+        {
+          "id": 1,
+          "name": "Nature",
+          "description": "Natural landscapes and wildlife photography",
+          "sort_order": 1,
+          "is_default": true,
+          "created_at": "2025-08-17T14:30:18.754821"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "filename": "0fc8399d-b325-48c7-b883-303db722e933.jpg",
+      "original_filename": "0fc8399d-b325-48c7-b883-303db722e933.jpg",
+      "title": "Dog",
+      "description": "Dog",
+      "camera_make": "Canon Canon EOS R8",
+      "camera_model": null,
+      "lens": "EF24-105mm f/4L IS USM",
+      "aperture": "4.0",
+      "shutter_speed": "0.0013333333333333333",
+      "iso": "100",
+      "focal_length": null,
+      "date_taken": null,
+      "file_size": null,
+      "width": null,
+      "height": null,
+      "is_active": true,
+      "sort_order": 0,
+      "created_at": "2025-08-17T14:46:55.682326",
+      "updated_at": "2025-08-17T14:46:55.682328",
+      "categories": [
+        {
+          "id": 7,
+          "name": "Pets",
+          "description": "Pets photography",
+          "sort_order": 3,
+          "is_default": false,
+          "created_at": "2025-08-17T14:46:55.666196"
+        }
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "id": 1,
+      "name": "Nature",
+      "description": "Natural landscapes and wildlife photography",
+      "sort_order": 1,
+      "is_default": true,
+      "created_at": "2025-08-17T14:30:18.754821"
+    },
+    {
+      "id": 2,
+      "name": "Portrait",
+      "description": "Portrait and people photography",
+      "sort_order": 2,
+      "is_default": false,
+      "created_at": "2025-08-17T14:30:18.756235"
+    },
+    {
+      "id": 3,
+      "name": "Architecture",
+      "description": "Buildings and architectural photography",
+      "sort_order": 3,
+      "is_default": false,
+      "created_at": "2025-08-17T14:30:18.757067"
+    },
+    {
+      "id": 4,
+      "name": "Street",
+      "description": "Street photography and urban scenes",
+      "sort_order": 4,
+      "is_default": false,
+      "created_at": "2025-08-17T14:30:18.757930"
+    },
+    {
+      "id": 5,
+      "name": "Miscellaneous",
+      "description": "Other photography work",
+      "sort_order": 5,
+      "is_default": false,
+      "created_at": "2025-08-17T14:30:18.758552"
+    },
+    {
+      "id": 6,
+      "name": "Flora",
+      "description": "Flora photography",
+      "sort_order": 3,
+      "is_default": false,
+      "created_at": "2025-08-17T14:46:55.665070"
+    },
+    {
+      "id": 7,
+      "name": "Pets",
+      "description": "Pets photography",
+      "sort_order": 3,
+      "is_default": false,
+      "created_at": "2025-08-17T14:46:55.666196"
+    }
+  ],
+  "featured": {
+    "id": 1,
+    "portfolio_image_id": 7,
+    "title": "FEST",
+    "story": "The Canon EOS R8 offers several aspect ratio options for still photos, including 3:2 (full-frame), 1.6x (crop), 1:1, 4:3, and 16:9. The camera's default aspect ratio is 3:2, which is a full-frame aspect ratio of 6000 x 4000 pixels. When using a 1.6x crop, the image size is 3744 x 2496 pixels. The other aspect ratios (1:1, 4:3, and 16:9) can be selected in the camera's settings and will result in different pixel dimensions depending on the chosen ratio. This is a test",
+    "is_active": true,
+    "created_at": "2025-08-17T14:47:23.008384",
+    "updated_at": "2025-08-17T19:01:50.584435",
+    "portfolio_image": {
+      "id": 7,
+      "filename": "b221528c-a841-4458-a35a-904997d7813c.jpg",
+      "original_filename": "b221528c-a841-4458-a35a-904997d7813c.jpg",
+      "title": "FEST",
+      "description": "FEST",
+      "camera_make": "Canon Canon EOS R8",
+      "camera_model": null,
+      "lens": "EF24-105mm f/4L IS USM",
+      "aperture": "4.0",
+      "shutter_speed": "0.0013333333333333333",
+      "iso": "100",
+      "focal_length": null,
+      "date_taken": null,
+      "file_size": null,
+      "width": null,
+      "height": null,
+      "is_active": true,
+      "sort_order": 0,
+      "created_at": "2025-08-17T14:46:55.668861",
+      "updated_at": "2025-08-17T14:46:55.668863",
+      "categories": [
+        {
+          "id": 1,
+          "name": "Nature",
+          "description": "Natural landscapes and wildlife photography",
+          "sort_order": 1,
+          "is_default": true,
+          "created_at": "2025-08-17T14:30:18.754821"
+        }
+      ]
+    }
+  },
+  "background": {
+    "id": 1,
+    "filename": "a1801164-0d42-4e25-ad38-754e2315de5c.jpg",
+    "original_filename": "a1801164-0d42-4e25-ad38-754e2315de5c.jpg",
+    "title": "Bridges trails waterfalls 1",
+    "is_active": true,
+    "created_at": "2025-08-17T14:54:13.881378"
+  }
+}
