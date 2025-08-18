@@ -69,20 +69,11 @@ def serve(path):
 def serve_assets(filename):
     """Serve assets from the assets directory"""
     return send_from_directory(os.path.join(app.static_folder, 'assets'), filename)
-@app.route('/health')
-def health():
-    return 'OK', 200
-
-@app.route('/')
-def index():
-    return app.send_static_file('index.html')
 
 @app.route('/test')
 def test():
     return 'Flask is working!'
 
 if __name__ == '__main__':
-    import os
-port = int(os.environ.get('PORT', 5001))
-app.run(host='0.0.0.0', port=port, debug=True)
-
+    port = int(os.environ.get('PORT', 5001))
+    app.run(host='0.0.0.0', port=port, debug=True)
