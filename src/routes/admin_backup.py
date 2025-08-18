@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime
 from src.models.user import db, PortfolioImage, Category, FeaturedImage, BackgroundImage, ContactSubmission
 
-admin_bp = Blueprint('admin', __name__)
+from flask import Blueprint, request, jsonify, render_template_string
 
 UPLOAD_FOLDER = 'src/static/assets'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
