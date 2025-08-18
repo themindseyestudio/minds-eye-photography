@@ -515,4 +515,3 @@ def background_management():
 def contact_management():
     """Contact management interface - placeholder"""
     return "Contact management interface would be here"
-
