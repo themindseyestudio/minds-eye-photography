@@ -77,6 +77,10 @@ def health():
 def index():
     return app.send_static_file('index.html')
 
+@app.route('/test')
+def test():
+    return 'Flask is working!'
+
 if __name__ == '__main__':
     import os
 port = int(os.environ.get('PORT', 5001))
