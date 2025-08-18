@@ -71,5 +71,7 @@ def serve_assets(filename):
     return send_from_directory(os.path.join(app.static_folder, 'assets'), filename)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    import os
+port = int(os.environ.get('PORT', 5001))
+app.run(host='0.0.0.0', port=port, debug=True)
 
