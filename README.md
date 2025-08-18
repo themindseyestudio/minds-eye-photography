@@ -1,4 +1,4 @@
-# Mind's Eye Photography Website
+# Mind's Eye Photography Website 08/18/25
 
 ## 🚀 Railway Deployment Ready
 
